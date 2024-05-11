@@ -10,7 +10,9 @@ xxhash.xxh64("xxhash", seed=20141025)
 
 
 class State(Enum):
-    pass
+    one = auto()
+    two = auto()
+    three = auto()
 
 
 class BloomFilter:
