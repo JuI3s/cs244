@@ -28,22 +28,27 @@ class StatefulBloomFilterCell:
         # self.tate must already be equal to state
         return
 
+    def decrement(self):
+        self.refCount = self.refCount - 1
+        if self.refCount == 0:
+            self.state = None
+
 
 class StatefulBloomFilter(BloomFilter):
 
     def __init__(self, num_hash_func=4) -> None:
         super().__init__(num_hash_func)
-        self.store = [None for _ in range(self.num_buckets)]
+        self.store = [StatefulBloomFilterCell() for _ in range(self.num_buckets)]
 
     def insertEntry(self, flow: str, state: State):
         # • Insertion. Hash the flow. If the cell counter is 0, write the new value and set the count to 1. If the cell value is DK, increment the count. If the cell value equals the flow value, increment the count. If the cell value does not equal the flow value, increment the count but change the cell to DK.
-        hash_vals = self.computeHashVals(flow)
-        return super().insertEntry(flow, state)
+        for hash_val in self.computeHashVals(flow):
+            self.store[hash_val].add(state=state)
 
-    def modifyEntry(self, flow: str, newState: State):
+    def modifyEntry(self, flow: str, state: State):
         # • Modify. Hash the flow. If the cell value is DK, leave it. If the current count is 1, change the cell value. If current count is exceeds 1, change the cell value to DK.
-
-        return super().modifyEntry(flow, newState)
+        for hash_val in self.computeHashVals(flow):
+            self.store[hash_val].set(state=state)
 
     def lookup(self, flow: str) -> State:
         # • Lookup. Check all cells associated with a flow. If all cell values are DK, return DK. If all cell values have value i or DK (and at least one cell has value i), return i. If there is more than one value in the cells, the item is not in the set.
@@ -72,6 +77,14 @@ class TestStatefulBloomFilter(unittest.TestCase):
         cell.set(State.two)
         self.assertEqual(cell.refCount, 2)
         self.assertTrue(isinstance(cell.state, DontKnow))
+
+        cell.decrement()
+        self.assertEqual(cell.refCount, 1)
+        self.assertTrue(isinstance(cell.state, DontKnow))
+
+        cell.decrement()
+        self.assertEqual(cell.refCount, 0)
+        self.assertIsNone(cell.state)
 
 
 if __name__ == "__main__":
