@@ -2,6 +2,7 @@ import unittest
 
 from abc import abstractmethod
 from enum import auto, Enum
+from typing import Optional
 
 import xxhash
 
@@ -41,7 +42,7 @@ class BloomFilter:
         pass
 
     @abstractmethod
-    def lookup(self, flow: str) -> State:
+    def lookup(self, flow: str) -> Optional[State]:
         pass
 
     @abstractmethod

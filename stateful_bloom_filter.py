@@ -50,14 +50,28 @@ class StatefulBloomFilter(BloomFilter):
         for hash_val in self.computeHashVals(flow):
             self.store[hash_val].set(state=state)
 
-    def lookup(self, flow: str) -> State:
+    def lookup(self, flow: str) -> Optional[State]:
         # • Lookup. Check all cells associated with a flow. If all cell values are DK, return DK. If all cell values have value i or DK (and at least one cell has value i), return i. If there is more than one value in the cells, the item is not in the set.
+        ret = None
+        for hash_val in self.computeHashVals(flow):
+            state = self.store[hash_val]
 
-        return super().lookup(flow)
+            if state is None:
+                return None
+
+            if ret is None:
+                ret = state
+            elif isinstance(ret, DontKnow) and not isinstance(state, DontKnow):
+                ret = state
+            elif ret != state and not isinstance(state, DontKnow):
+                return None
+
+        return ret
 
     def deleteEntry(self, flow: str):
         # • Deletion. Hash the flow. If the count is 1, reset cell to 0. If the count it at least 1, decrement count, leaving the value or DK as is.
-        return super().deleteEntry(flow)
+        for hash_val in self.computeHashVals(flow):
+            self.store[hash_val].decrement()
 
 
 class TestStatefulBloomFilter(unittest.TestCase):
