@@ -1,28 +1,33 @@
 import unittest
+from typing import Optional, Union
 
 from bloom_filter import BloomFilter, State
-from typing import Union, Optional
 
 
 class DontKnow:
-    
+
     def __init__(self) -> None:
         pass
+
+
 class StatefulBloomFilterCell:
-    
+
     def __init__(self) -> None:
-        self.state: Optional[State] = None
-        self.refCount: int = 0 
+        self.state: Optional[Union[State, DontKnow]] = None
+        self.refCount: int = 0
 
     def add(self, state: State):
         self.refCount = self.refCount + 1
         self.set(state=state)
-        
+
     def set(self, state: State):
         if self.state is None:
             self.state = state
-        elif self.state != 
-        self.state = state 
+        elif self.state != DontKnow() and self.state != state:
+            self.state = DontKnow()
+        # self.tate must already be equal to state
+        return
+
 
 class StatefulBloomFilter(BloomFilter):
 
@@ -30,11 +35,9 @@ class StatefulBloomFilter(BloomFilter):
         super().__init__(num_hash_func)
         self.store = [None for _ in range(self.num_buckets)]
 
-
     def insertEntry(self, flow: str, state: State):
         # • Insertion. Hash the flow. If the cell counter is 0, write the new value and set the count to 1. If the cell value is DK, increment the count. If the cell value equals the flow value, increment the count. If the cell value does not equal the flow value, increment the count but change the cell to DK.
         hash_vals = self.computeHashVals(flow)
-        for  
         return super().insertEntry(flow, state)
 
     def modifyEntry(self, flow: str, newState: State):
@@ -53,7 +56,22 @@ class StatefulBloomFilter(BloomFilter):
 
 
 class TestStatefulBloomFilter(unittest.TestCase):
-    pass
+    def test_stateful_bloom_filter_cell(self):
+        cell = StatefulBloomFilterCell()
+        self.assertEqual(cell.refCount, 0)
+        self.assertEqual(cell.state, None)
+
+        cell.add(State.one)
+        self.assertEqual(cell.refCount, 1)
+        self.assertEqual(cell.state, State.one)
+
+        cell.add(State.one)
+        self.assertEqual(cell.refCount, 2)
+        self.assertEqual(cell.state, State.one)
+
+        cell.set(State.two)
+        self.assertEqual(cell.refCount, 2)
+        self.assertTrue(isinstance(cell.state, DontKnow))
 
 
 if __name__ == "__main__":
