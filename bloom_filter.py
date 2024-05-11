@@ -15,13 +15,16 @@ class State(Enum):
 
 class BloomFilter:
 
-    def __init__(self, num_hash_func=4) -> None:
+    def __init__(self, num_hash_func=4, num_buckets=10) -> None:
         self.seeds = []
         self.num_hash_func = num_hash_func
+        self.num_buckets = num_buckets
         self.setupHashFunc()
 
-    def computeHashVals(self, val: str) -> list[int]:
-        return [xxhash.xxh64(val, seed=seed).intdigest() for seed in self.seeds]
+    def computeHashVals(self, val: str, modulo_to_buckets=True) -> list[int]:
+        ret = [xxhash.xxh64(val, seed=seed).intdigest() for seed in self.seeds]
+        ret = [each % self.num_buckets if modulo_to_buckets else each for each in ret]
+        return ret
 
     def setupHashFunc(self):
         for i in range(self.num_hash_func):
@@ -48,12 +51,24 @@ class TestBloomFiltersMethods(unittest.TestCase):
 
     def test_hash_deterministic(self):
         filter = BloomFilter()
-        self.assertEqual(len(filter.computeHashVals("hello_world")), 4)
         self.assertEqual(
-            filter.computeHashVals("hello_world"), filter.computeHashVals("hello_world")
+            len(filter.computeHashVals("hello_world", modulo_to_buckets=False)), 4
+        )
+        self.assertEqual(
+            filter.computeHashVals("hello_world", modulo_to_buckets=False),
+            filter.computeHashVals("hello_world", modulo_to_buckets=False),
         )
         self.assertNotEqual(
-            filter.computeHashVals("val1"), filter.computeHashVals("val2")
+            filter.computeHashVals("val1", modulo_to_buckets=False),
+            filter.computeHashVals("val2", modulo_to_buckets=False),
+        )
+
+    def test_hash_to_buckets(self):
+        filter = BloomFilter()
+        hash_vals = filter.computeHashVals("hello_world")
+        self.assertTupleEqual(
+            tuple([0 <= each and each <= filter.num_buckets for each in hash_vals]),
+            tuple([True for _ in range(len(hash_vals))]),
         )
 
 
