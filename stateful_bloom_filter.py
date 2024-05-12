@@ -36,8 +36,8 @@ class StatefulBloomFilterCell:
 
 class StatefulBloomFilter(BloomFilter):
 
-    def __init__(self, num_hash_func=4, num_cells=10) -> None:
-        super().__init__(num_hash_func, num_cells=num_cells)
+    def __init__(self, hash_count=4, num_cells=10) -> None:
+        super().__init__(hash_count, num_cells=num_cells)
         self.store = [StatefulBloomFilterCell() for _ in range(self.num_buckets)]
 
     def insert_entry(self, flow, state):
