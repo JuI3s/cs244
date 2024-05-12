@@ -8,18 +8,28 @@ def generate_packets(num_packets, flow_type):
     packets = [] 
     if flow_type == 'interesting':
         # sequential transitions 
+        random_indexes = random.sample(range(num_packets), 10) 
+        curr_state = 1
         for i in range(num_packets):
-            state_from = i % 10 + 1
-            state_to = (i + 1) % 10 + 1
-            packets.append((state_from, state_to))
+            if (i in random_indexes):
+                state_from = curr_state
+                state_to = curr_state + 1
+                curr_state += 1
+                packets.append((state_from, state_to))
+            else:
+                packets.append((-1, -1))
     elif flow_type == 'noise':
         # random transitions
+        random_indexes = random.sample(range(num_packets), 20) 
         for i in range(num_packets):
-            state_from = random.randint(1, 9)
-            state_to = random.randint(2, 10)
-            # no complete transition from 9 to 10
-            if state_from != 9 or state_to != 10:
-                packets.append((state_from, state_to))
+            if (i in random_indexes):
+                state_from = random.randint(1, 9)
+                state_to = random.randint(2, 10)
+                # no complete transition from 9 to 10
+                if state_from != 9 or state_to != 10:
+                    packets.append((state_from, state_to))
+                else:
+                    packets.append((-1, -1))
             else:
                 packets.append((-1, -1))
     else:

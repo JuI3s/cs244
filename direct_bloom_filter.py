@@ -3,7 +3,7 @@ from bitarray import bitarray
 import sys 
 
 class DirectBloomFilter(object):
-    def __init__(self, num_cells, hash_count, phase_duration=1000,):
+    def __init__(self, num_cells, hash_count, phase_duration=1000):
         self.num_cells = num_cells
         self.size = num_cells * 3  # Each cell has 3 bits
         self.phase_duration = phase_duration
