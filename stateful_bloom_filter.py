@@ -13,14 +13,14 @@ class DontKnow:
 class StatefulBloomFilterCell:
 
     def __init__(self) -> None:
-        self.state: Optional[Union[State, DontKnow]] = None
-        self.refCount: int = 0
+        self.state = None
+        self.refCount = 0
 
-    def add(self, state: State):
+    def add(self, state):
         self.refCount = self.refCount + 1
         self.set(state=state)
 
-    def set(self, state: State):
+    def set(self, state):
         if self.state is None:
             self.state = state
         elif self.state != DontKnow() and self.state != state:
@@ -40,17 +40,17 @@ class StatefulBloomFilter(BloomFilter):
         super().__init__(num_hash_func)
         self.store = [StatefulBloomFilterCell() for _ in range(self.num_buckets)]
 
-    def insertEntry(self, flow: str, state: State):
+    def insertEntry(self, flow, state):
         # • Insertion. Hash the flow. If the cell counter is 0, write the new value and set the count to 1. If the cell value is DK, increment the count. If the cell value equals the flow value, increment the count. If the cell value does not equal the flow value, increment the count but change the cell to DK.
         for hash_val in self.computeHashVals(flow):
             self.store[hash_val].add(state=state)
 
-    def modifyEntry(self, flow: str, state: State):
+    def modifyEntry(self, flow, state):
         # • Modify. Hash the flow. If the cell value is DK, leave it. If the current count is 1, change the cell value. If current count is exceeds 1, change the cell value to DK.
         for hash_val in self.computeHashVals(flow):
             self.store[hash_val].set(state=state)
 
-    def lookup(self, flow: str) -> Optional[State]:
+    def lookup(self, flow):
         # • Lookup. Check all cells associated with a flow. If all cell values are DK, return DK. If all cell values have value i or DK (and at least one cell has value i), return i. If there is more than one value in the cells, the item is not in the set.
         ret = None
         for hash_val in self.computeHashVals(flow):
@@ -66,9 +66,9 @@ class StatefulBloomFilter(BloomFilter):
             elif ret != state and not isinstance(state, DontKnow):
                 return None
 
-        return ret
+        return ret if not isinstance(ret, DontKnow) else "IDK"
 
-    def deleteEntry(self, flow: str):
+    def deleteEntry(self, flow):
         # • Deletion. Hash the flow. If the count is 1, reset cell to 0. If the count it at least 1, decrement count, leaving the value or DK as is.
         for hash_val in self.computeHashVals(flow):
             self.store[hash_val].decrement()
@@ -80,15 +80,15 @@ class TestStatefulBloomFilter(unittest.TestCase):
         self.assertEqual(cell.refCount, 0)
         self.assertEqual(cell.state, None)
 
-        cell.add(State.one)
+        cell.add("one")
         self.assertEqual(cell.refCount, 1)
-        self.assertEqual(cell.state, State.one)
+        self.assertEqual(cell.state, "one")
 
-        cell.add(State.one)
+        cell.add("one")
         self.assertEqual(cell.refCount, 2)
-        self.assertEqual(cell.state, State.one)
+        self.assertEqual(cell.state, "one")
 
-        cell.set(State.two)
+        cell.set("two")
         self.assertEqual(cell.refCount, 2)
         self.assertTrue(isinstance(cell.state, DontKnow))
 

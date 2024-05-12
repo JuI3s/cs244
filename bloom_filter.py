@@ -18,13 +18,13 @@ class State(Enum):
 
 class BloomFilter:
 
-    def __init__(self, num_hash_func=4, num_buckets=10) -> None:
+    def __init__(self, num_hash_func=4, num_buckets=10):
         self.seeds = []
         self.num_hash_func = num_hash_func
         self.num_buckets = num_buckets
         self.setupHashFunc()
 
-    def computeHashVals(self, val: str, modulo_to_buckets=True) -> list[int]:
+    def computeHashVals(self, val, modulo_to_buckets=True):
         ret = [xxhash.xxh64(val, seed=seed).intdigest() for seed in self.seeds]
         ret = [each % self.num_buckets if modulo_to_buckets else each for each in ret]
         return ret
@@ -34,19 +34,19 @@ class BloomFilter:
             self.seeds.append(i)
 
     @abstractmethod
-    def insertEntry(self, flow: str, state: State):
+    def insertEntry(self, flow, state):
         pass
 
     @abstractmethod
-    def modifyEntry(self, flow: str, newState: State):
+    def modifyEntry(self, flow, newState):
         pass
 
     @abstractmethod
-    def lookup(self, flow: str) -> Optional[State]:
+    def lookup(self, flow):
         pass
 
     @abstractmethod
-    def deleteEntry(self, flow: str):
+    def deleteEntry(self, flow):
         pass
 
 
