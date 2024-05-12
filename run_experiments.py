@@ -3,6 +3,7 @@ from state_machine import StateMachine
 from packet_generator import generate_flows
 from direct_bloom_filter import DirectBloomFilter
 from fingerprint_compressed_filter import FCF
+from stateful_bloom_filter import StatefulBloomFilter
 
 def simulate_fcf_filter(config):
     flows = generate_flows()
@@ -88,5 +89,6 @@ def simulate_dbf_sbf_filter(filter_class, config, filter_name):
         })
     print(results)
     return results
-simulate_fcf_filter([(516096, 6000, 3, 6, 10)])
-simulate_dbf_sbf_filter(DirectBloomFilter,  [(786432, 256000, 3)], 'Direct Bloom Filter')
+#simulate_fcf_filter([(516096, 6000, 3, 6, 10)])
+#simulate_dbf_sbf_filter(DirectBloomFilter,  [(786432, 256000, 3)], 'Direct Bloom Filter')
+simulate_dbf_sbf_filter(StatefulBloomFilter,  [(524288, 128000, 3)], 'Stateful Bloom Filter')
