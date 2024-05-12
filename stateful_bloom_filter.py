@@ -42,7 +42,7 @@ class StatefulBloomFilter(BloomFilter):
 
     def insert_entry(self, flow, state):
         # • Insertion. Hash the flow. If the cell counter is 0, write the new value and set the count to 1. If the cell value is DK, increment the count. If the cell value equals the flow value, increment the count. If the cell value does not equal the flow value, increment the count but change the cell to DK.
-        for hash_val in self.compute_hash_vals(flow):
+        for hash_val in self.compute_hash_vals(str(flow)):
             self.store[hash_val].add(state=state)
 
     def modify_entry(self, flow, state):
@@ -53,7 +53,7 @@ class StatefulBloomFilter(BloomFilter):
     def lookup_entry(self, flow):
         # • Lookup. Check all cells associated with a flow. If all cell values are DK, return DK. If all cell values have value i or DK (and at least one cell has value i), return i. If there is more than one value in the cells, the item is not in the set.
         ret = None
-        for hash_val in self.compute_hash_vals(flow):
+        for hash_val in self.compute_hash_vals(str(flow)):
             state = self.store[hash_val]
 
             if state is None:
