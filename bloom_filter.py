@@ -22,14 +22,14 @@ class BloomFilter:
         self.seeds = []
         self.num_hash_func = hash_count
         self.num_buckets = num_cells
-        self.setupHashFunc()
+        self.setup_hash_func()
 
     def compute_hash_vals(self, val, modulo_to_buckets=True):
         ret = [xxhash.xxh64(val, seed=seed).intdigest() for seed in self.seeds]
         ret = [each % self.num_buckets if modulo_to_buckets else each for each in ret]
         return ret
 
-    def setupHashFunc(self):
+    def setup_hash_func(self):
         for i in range(self.num_hash_func):
             self.seeds.append(i)
 
@@ -42,7 +42,7 @@ class BloomFilter:
         pass
 
     @abstractmethod
-    def lookup(self, flow):
+    def lookup_entry(self, flow):
         pass
 
     @abstractmethod

@@ -50,7 +50,7 @@ class StatefulBloomFilter(BloomFilter):
         for hash_val in self.compute_hash_vals(flow):
             self.store[hash_val].set(state=state)
 
-    def lookup(self, flow):
+    def lookup_entry(self, flow):
         # • Lookup. Check all cells associated with a flow. If all cell values are DK, return DK. If all cell values have value i or DK (and at least one cell has value i), return i. If there is more than one value in the cells, the item is not in the set.
         ret = None
         for hash_val in self.compute_hash_vals(flow):
