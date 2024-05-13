@@ -37,6 +37,7 @@ def simulate_fcf_filter(config):
 
         results.append({
             'Memory Size': memory_size,
+            'Table Size': table_size,
             'Hash Functions': hash_functions,
             'Cells per Bucket': cells_per_bucket,
             'False Positive': false_positives / 60000,
@@ -89,6 +90,15 @@ def simulate_dbf_sbf_filter(filter_class, config, filter_name):
         })
     print(results)
     return results
-#simulate_fcf_filter([(516096, 6000, 3, 6, 10)])
-#simulate_dbf_sbf_filter(DirectBloomFilter,  [(786432, 256000, 3)], 'Direct Bloom Filter')
+# simulate_dbf_sbf_filter(DirectBloomFilter,  [(786432, 256000, 3)], 'Direct Bloom Filter')
+# simulate_dbf_sbf_filter(DirectBloomFilter,  [(1572864, 512000, 4)], 'Direct Bloom Filter')
+# simulate_dbf_sbf_filter(DirectBloomFilter,  [(3145728, 1000000, 5)], 'Direct Bloom Filter')
+
 simulate_dbf_sbf_filter(StatefulBloomFilter,  [(524288, 128000, 3)], 'Stateful Bloom Filter')
+simulate_dbf_sbf_filter(StatefulBloomFilter,  [(1048576, 256000, 4)], 'Stateful Bloom Filter')
+simulate_dbf_sbf_filter(StatefulBloomFilter,  [(2097152, 512000, 5)], 'Stateful Bloom Filter')
+
+simulate_fcf_filter([(516096, 6000, 3, 6, 10)])
+simulate_fcf_filter([(1081344, 8000, 4, 6, 10)])
+simulate_fcf_filter([(2162688, 16000, 4, 6, 18)])
+
