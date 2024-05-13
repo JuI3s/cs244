@@ -10,7 +10,7 @@ def generate_hash_functions(n):
 
 
 class FCF:
-    def __init__(self, hash_fns, table_size, cells_per_bucket, fingerprint_size, deletion_window=1000):
+    def __init__(self, hash_fns, table_size, cells_per_bucket, fingerprint_size, deletion_window=6000000):
         assert table_size % hash_fns == 0
         self.deletion_window = deletion_window
         self.hash_fns = generate_hash_functions(hash_fns)
