@@ -10,7 +10,7 @@ def generate_hash_functions(n):
 
 
 class FCF:
-    def __init__(self, hash_fns, table_size, cells_per_bucket, fingerprint_size, deletion_window=6000000):
+    def __init__(self, hash_fns, table_size, cells_per_bucket, fingerprint_size, deletion_window=400000):
         assert table_size % hash_fns == 0
         self.deletion_window = deletion_window
         self.hash_fns = generate_hash_functions(hash_fns)
@@ -26,30 +26,37 @@ class FCF:
         indices = [fn(flow_id) % self.subtable_size for fn in self.hash_fns]
         fingerprint = self.fingerprint_generator(flow_id)
         subtable_entries = [self.table[i][indices[i]] for i in range(len(self.hash_fns))]
+        # if there is an entry with the fingerprint, modify it to "IDK"
+        for entry in subtable_entries:
+            for i, (flag, f, s) in enumerate(entry):
+                if f == fingerprint:
+                    entry[i] = (1, fingerprint, "IDK")
+                    self.handle_deletions()
+                    return
+        # Assert that there is no entry with the fingerprint
+        for entry in subtable_entries:
+            #assert all(f != fingerprint for (flag, f, s) in entry)
+            pass
         # find the entry with the fewest elements
         min_index = min(range(len(subtable_entries)), key=lambda i: len(subtable_entries[i]))
         # add (fingerprint, state) to the entry
         subtable_entries[min_index].append((1, fingerprint, state))
-        self.handle_deletions()
-    def modify_entry(self, flow_id, state):
-        indices = [fn(flow_id) % self.subtable_size for fn in self.hash_fns]
-        fingerprint = self.fingerprint_generator(flow_id)
-        subtable_entries = [self.table[i][indices[i]] for i in range(len(self.hash_fns))]
-        for entry in subtable_entries:
-            for i, (flag, f, s) in enumerate(entry):
-                if f == fingerprint:
-                    entry[i] = (1, fingerprint, state)
+        if len(subtable_entries[min_index]) > self.cells_per_bucket:
+            self.num_ops = self.deletion_window
         self.handle_deletions()
     def lookup_entry(self, flow_id):
         result = None
         indices = [fn(flow_id) % self.subtable_size for fn in self.hash_fns]
         fingerprint = self.fingerprint_generator(flow_id)
         subtable_entries = [self.table[i][indices[i]] for i in range(len(self.hash_fns))]
+        # make sure there is only one entry with the fingerprint
+        entries_with_fingerprint = [entry for entry in subtable_entries if any(f == fingerprint for (flag, f, s) in entry)]
+        assert len(entries_with_fingerprint) <= 1
+
         for entry in subtable_entries:
             for i, (flag, f, s) in enumerate(entry):
                 if f == fingerprint:
-                    if result is not None:
-                        return "IDK"
+                    # assert result is None # There should be at most one entry with the fingerprint
                     entry[i] = (1, f, s)
                     result = s
         self.handle_deletions()
@@ -58,6 +65,9 @@ class FCF:
         indices = [fn(flow_id) % self.subtable_size for fn in self.hash_fns]
         fingerprint = self.fingerprint_generator(flow_id)
         subtable_entries = [self.table[i][indices[i]] for i in range(len(self.hash_fns))]
+        # make sure there is only one entry with the fingerprint
+        entries_with_fingerprint = [entry for entry in subtable_entries if any(f == fingerprint for (flag, f, s) in entry)]
+        assert len(entries_with_fingerprint) <= 1
         for entry in subtable_entries:
             for i, (flag, f, s) in enumerate(entry):
                 if f == fingerprint:
@@ -65,6 +75,7 @@ class FCF:
     def handle_deletions(self):
         self.num_ops += 1
         if self.num_ops >= self.deletion_window:
+            print("deleting cuz time ran out")
             self.num_ops = 0
             for i in range(len(self.hash_fns)):
                 for j in range(self.subtable_size):
@@ -96,4 +107,3 @@ def test_fcf():
     assert fcf.lookup_entry(1) == None
 
     
-test_fcf()

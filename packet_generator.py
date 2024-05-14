@@ -8,7 +8,7 @@ def generate_packets(num_packets, flow_type):
     packets = [] 
     if flow_type == 'interesting':
         # sequential transitions 
-        random_indexes = random.sample(range(num_packets), 10) 
+        random_indexes = random.sample(range(num_packets), 9) 
         curr_state = 1
         for i in range(num_packets):
             if (i in random_indexes):
